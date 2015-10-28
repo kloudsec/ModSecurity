@@ -238,10 +238,12 @@ static void internal_log_ex(request_rec *r, directory_config *dcfg, modsec_rec *
 
     /* Construct the log entry. */
     apr_snprintf(str2, sizeof(str2), 
-        "[%s] [%s/sid#%pp][rid#%pp][%s][%d] %s\n",
-        current_logtime(msr->mp), ap_get_server_name(r), (r->server),
-        r, ((r->uri == NULL) ? "" : log_escape_nq(msr->mp, r->uri)),
-        level, (fixup ? log_escape_nq(msr->mp, str1) : str1));
+        "{\"client_request_timestamp\": %lu, \"host\": \"%s\", \"path\": \"%s\", \"level\": %d, %s\n",
+        apr_time_sec(apr_time_now()), 
+        ((r->hostname == NULL) ? "" : log_escape_nq(msr->mp, r->hostname)),
+        ((r->uri == NULL) ? "" : log_escape_nq(msr->mp, r->uri)),
+        level, 
+        (fixup ? log_escape_nq(msr->mp, str1) : str1));
 
     /* Write to the debug log. */
     if ((debuglog_fd != NULL)&&(level <= filter_debug_level)) {

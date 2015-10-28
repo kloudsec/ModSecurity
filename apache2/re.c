@@ -2191,19 +2191,16 @@ char *msre_format_metadata(modsec_rec *msr, msre_actionset *actionset) {
     char *tags = "";
     char *fn = "";
     int k;
+    int first = 0;
 
     if (actionset == NULL) return "";
 
-    if ((actionset->rule != NULL) && (actionset->rule->filename != NULL)) {
-        fn = apr_psprintf(msr->mp, " [file \"%s\"] [line \"%d\"]",
-                actionset->rule->filename, actionset->rule->line_num);
-    }
     if (actionset->id != NULL) {
-        id = apr_psprintf(msr->mp, " [id \"%s\"]",
+        id = apr_psprintf(msr->mp, " \"id\": \"%s\",",
                 log_escape(msr->mp, actionset->id));
     }
     if (actionset->rev != NULL) {
-        rev = apr_psprintf(msr->mp, " [rev \"%s\"]",
+        rev = apr_psprintf(msr->mp, " \"rev\": \"%s\",",
                 log_escape(msr->mp, actionset->rev));
     }
     if (actionset->msg != NULL) {
@@ -2213,7 +2210,7 @@ char *msre_format_metadata(modsec_rec *msr, msre_actionset *actionset) {
         var->value_len = strlen(actionset->msg);
         expand_macros(msr, var, NULL, msr->mp);
 
-        msg = apr_psprintf(msr->mp, " [msg \"%s\"]",
+        msg = apr_psprintf(msr->mp, " \"msg\": \"%s\",",
                 log_escape_ex(msr->mp, var->value, var->value_len));
     }
     if (actionset->logdata != NULL) {
@@ -2223,9 +2220,9 @@ char *msre_format_metadata(modsec_rec *msr, msre_actionset *actionset) {
         var->value_len = strlen(actionset->logdata);
         expand_macros(msr, var, NULL, msr->mp);
 
-        logdata = apr_psprintf(msr->mp, " [data \"%s",
+        logdata = apr_psprintf(msr->mp, " \"data\": \"%s",
                 log_escape_hex(msr->mp, (unsigned char *)var->value, var->value_len));
-        logdata = apr_pstrcat(msr->mp, logdata, "\"]", NULL);
+        logdata = apr_pstrcat(msr->mp, logdata, "\",", NULL);
 
         /* If it is > 512 bytes, then truncate at 512 with ellipsis.
          * NOTE: 512 actual data + 9 bytes of label = 521
@@ -2240,25 +2237,26 @@ char *msre_format_metadata(modsec_rec *msr, msre_actionset *actionset) {
         }
     }
     if ((actionset->severity >= 0)&&(actionset->severity <= 7)) {
-        severity = apr_psprintf(msr->mp, " [severity \"%s\"]",
+        severity = apr_psprintf(msr->mp, " \"severity\": \"%s\",",
                 msre_format_severity(actionset->severity));
     }
     if (actionset->version != NULL) {
-        version = apr_psprintf(msr->mp, " [ver \"%s\"]",
+        version = apr_psprintf(msr->mp, " \"ver\": \"%s\",",
                 log_escape(msr->mp, actionset->version));
     }
     if (actionset->maturity >= 0) {
-        maturity = apr_psprintf(msr->mp, " [maturity \"%d\"]",
+        maturity = apr_psprintf(msr->mp, " \"maturity\": %d,",
                 actionset->maturity);
     }
     if (actionset->accuracy >= 0) {
-        accuracy = apr_psprintf(msr->mp, " [accuracy \"%d\"]",
+        accuracy = apr_psprintf(msr->mp, " \"accuracy\": %d,",
                 actionset->accuracy);
     }
 
     /* Extract rule tags from the action list. */
     tarr = apr_table_elts(actionset->actions);
     telts = (const apr_table_entry_t*)tarr->elts;
+    tags = apr_psprintf(msr->mp, "\"tags\": [");
 
     for (k = 0; k < tarr->nelts; k++) {
         msre_action *action = (msre_action *)telts[k].val;
@@ -2270,10 +2268,17 @@ char *msre_format_metadata(modsec_rec *msr, msre_actionset *actionset) {
             var->value_len = strlen(action->param);
             expand_macros(msr, var, NULL, msr->mp);
 
-            tags = apr_psprintf(msr->mp, "%s [tag \"%s\"]", tags,
-               log_escape(msr->mp, var->value));
+            if (first == 0) {
+                first = 1;
+                tags = apr_psprintf(msr->mp, "%s\"%s\"", tags,
+                    log_escape(msr->mp, var->value));
+            } else {
+                tags = apr_psprintf(msr->mp, "%s, \"%s\"", tags,
+                    log_escape(msr->mp, var->value));
+            }
         }
     }
+    tags = apr_psprintf(msr->mp, "%s]}", tags);
 
     return apr_pstrcat(msr->mp, fn, id, rev, msg, logdata, severity, version, maturity, accuracy, tags, NULL);
 }
