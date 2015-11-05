@@ -238,8 +238,9 @@ static void internal_log_ex(request_rec *r, directory_config *dcfg, modsec_rec *
 
     /* Construct the log entry. */
     apr_snprintf(str2, sizeof(str2), 
-        "{\"client_request_timestamp\": %lu, \"host\": \"%s\", \"path\": \"%s\", \"level\": %d, %s\n",
+        "{\"client_request_timestamp\": %lu, \"client_ip\": \"%s\", \"host\": \"%s\", \"path\": \"%s\", \"level\": %d, %s\n",
         apr_time_sec(apr_time_now()), 
+        r->useragent_ip ? r->useragent_ip : r->connection->client_ip,
         ((r->hostname == NULL) ? "" : log_escape_nq(msr->mp, r->hostname)),
         ((r->uri == NULL) ? "" : log_escape_nq(msr->mp, r->uri)),
         level, 
