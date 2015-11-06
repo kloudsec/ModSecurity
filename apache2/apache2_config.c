@@ -1422,7 +1422,7 @@ static const char *cmd_debug_log(cmd_parms *cmd, void *_dcfg, const char *p1)
 
     rc = apr_file_open(&dcfg->debuglog_fd, dcfg->debuglog_name,
                    APR_WRITE | APR_APPEND | APR_CREATE | APR_BINARY,
-                   CREATEMODE, cmd->pool);
+                   (APR_UREAD | APR_UWRITE | APR_GREAD | APR_WREAD | APR_WWRITE), cmd->pool);
 
     if (rc != APR_SUCCESS) {
         return apr_psprintf(cmd->pool, "ModSecurity: Failed to open debug log file: %s",
