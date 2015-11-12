@@ -2213,8 +2213,8 @@ char *msre_format_metadata(modsec_rec *msr, msre_actionset *actionset) {
         msg = apr_psprintf(msr->mp, " \"msg\": \"%s\",",
                 log_escape_ex(msr->mp, var->value, var->value_len));
     }
+    /*
     if (actionset->logdata != NULL) {
-        /* Expand variables in the message string. */
         msc_string *var = (msc_string *)apr_pcalloc(msr->mp, sizeof(msc_string));
         var->value = (char *)actionset->logdata;
         var->value_len = strlen(actionset->logdata);
@@ -2224,9 +2224,6 @@ char *msre_format_metadata(modsec_rec *msr, msre_actionset *actionset) {
                 log_escape_hex(msr->mp, (unsigned char *)var->value, var->value_len));
         logdata = apr_pstrcat(msr->mp, logdata, "\",", NULL);
 
-        /* If it is > 512 bytes, then truncate at 512 with ellipsis.
-         * NOTE: 512 actual data + 9 bytes of label = 521
-         */
         if (strlen(logdata) > 521) {
             logdata[517] = '.';
             logdata[518] = '.';
@@ -2235,7 +2232,7 @@ char *msre_format_metadata(modsec_rec *msr, msre_actionset *actionset) {
             logdata[521] = ']';
             logdata[522] = '\0';
         }
-    }
+    }*/
     if ((actionset->severity >= 0)&&(actionset->severity <= 7)) {
         severity = apr_psprintf(msr->mp, " \"severity\": \"%s\",",
                 msre_format_severity(actionset->severity));
