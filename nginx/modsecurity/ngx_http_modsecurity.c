@@ -1058,9 +1058,6 @@ modsecLog(void *obj, int level, char *str)
     }
 }
 
-
-static server_rec *modsec_server = NULL;
-
 static ngx_int_t
 ngx_http_modsecurity_preconfiguration(ngx_conf_t *cf)
 {
@@ -1657,4 +1654,3 @@ ngx_http_modsecurity_drop_action(request_rec *r)
     ctx->r->connection->error = 1;
     return 0;
 }
-
